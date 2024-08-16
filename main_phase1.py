@@ -25,7 +25,7 @@ def print_matrix(matrix, name):
     print()
 
 def main():
-    sizes = [8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 64]
+    sizes = [8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 64, 100, 128, 200, 256, 300, 350, 400, 450, 512]
     results = []
 
     for size in sizes:
