@@ -41,22 +41,36 @@ def process_image(file_path, F, d):
     display_images(image, compressed_image, F, d)
 
 def display_images(original, processed, F, d):
+    canvas = tk.Canvas(frame, width=600, height=600)
+    scroll_y = tk.Scrollbar(frame, orient="vertical", command=canvas.yview)
+    scroll_x = tk.Scrollbar(frame, orient="horizontal", command=canvas.xview)
+    canvas.configure(yscrollcommand=scroll_y.set, xscrollcommand=scroll_x.set)
+
+    canvas.grid(row=2, column=0, columnspan=2)
+    scroll_y.grid(row=2, column=2, sticky='ns')
+    scroll_x.grid(row=3, column=0, columnspan=2, sticky='ew')
+
     original = Image.fromarray(original)
     processed = Image.fromarray(processed.astype(np.uint8))
-    original = ImageTk.PhotoImage(original)
-    processed = ImageTk.PhotoImage(processed)
 
-    original_label.config(image=original)
-    original_label.image = original
-    original_label_text.config(text="Originale")
+    original_image_tk = ImageTk.PhotoImage(original)
+    processed_image_tk = ImageTk.PhotoImage(processed)
 
-    processed_label.config(image=processed)
-    processed_label.image = processed
-    processed_label_text.config(text=f"Compressa (F={F}, d={d})")
+    canvas.create_image(0, 0, image=original_image_tk, anchor='nw')
+    canvas.create_image(original.width + 10, 0, image=processed_image_tk, anchor='nw')
+
+    canvas.config(scrollregion=canvas.bbox("all"))
+
+    original_label_text.config(text="Original Image")
+    processed_label_text.config(text=f"Compressed Image (F={F}, d={d})")
 
     original_label_text.grid()
     processed_label_text.grid()
+
     save_button.grid()
+
+    canvas.original_image_tk = original_image_tk
+    canvas.processed_image_tk = processed_image_tk
 
 def save_compressed_image():
     if compressed_image is not None:
@@ -66,12 +80,17 @@ def save_compressed_image():
 
 root = tk.Tk()
 root.title("DCT Image Compression")
+root.state('zoomed')
 
 frame = ttk.Frame(root, padding="10")
 frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
 
 choose_button = ttk.Button(frame, text="Scegli immagine", command=choose_file)
 choose_button.grid(row=0, column=0, pady=10)
+
+save_button = ttk.Button(frame, text="Salva immagine compressa", command=save_compressed_image)
+save_button.grid(row=0, column=1, pady=10)
+save_button.grid_remove() 
 
 original_label_text = ttk.Label(frame, text="", anchor="center")
 original_label_text.grid(row=1, column=0, pady=5)
@@ -86,7 +105,3 @@ processed_label_text.grid_remove()
 
 processed_label = ttk.Label(frame)
 processed_label.grid(row=2, column=1, padx=10, pady=10)
-
-save_button = ttk.Button(frame, text="Salva immagine compressa", command=save_compressed_image)
-save_button.grid(row=3, column=1, pady=10)
-save_button.grid_remove() 
