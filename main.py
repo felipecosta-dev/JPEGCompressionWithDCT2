@@ -38,7 +38,7 @@ def main():
     # Test the first row with 1D DCT
     first_row = test_block[0, :]
     manual_dct_1d_result = manual_dct.dct1d(first_row)
-    scipy_dct_1d_result = scipy_dct.dct2(first_row)
+    scipy_dct_1d_result = scipy_dct.dct1d(first_row)
 
     print("First Row Transformation:")
     print("Original:", first_row)
