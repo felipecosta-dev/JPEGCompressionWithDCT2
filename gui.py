@@ -41,7 +41,7 @@ def process_image(file_path, F, d):
     display_images(image, compressed_image, F, d)
 
 def display_images(original, processed, F, d):
-    canvas = tk.Canvas(frame, width=600, height=600)
+    canvas = tk.Canvas(frame, width=frame.winfo_screenwidth(), height=frame.winfo_screenheight())
     scroll_y = tk.Scrollbar(frame, orient="vertical", command=canvas.yview)
     scroll_x = tk.Scrollbar(frame, orient="horizontal", command=canvas.xview)
     canvas.configure(yscrollcommand=scroll_y.set, xscrollcommand=scroll_x.set)
@@ -53,8 +53,15 @@ def display_images(original, processed, F, d):
     original = Image.fromarray(original)
     processed = Image.fromarray(processed.astype(np.uint8))
 
+    max_width = (frame.winfo_screenwidth() // 2) - 20
+    ratio = max_width / original.width
+    new_height = int(original.height * ratio)
+
+    original = original.resize((max_width, new_height), Image.Resampling.LANCZOS)
+    processed_to_display = processed.resize((max_width, new_height), Image.Resampling.LANCZOS)
+
     original_image_tk = ImageTk.PhotoImage(original)
-    processed_image_tk = ImageTk.PhotoImage(processed)
+    processed_image_tk = ImageTk.PhotoImage(processed_to_display)
 
     canvas.create_image(0, 0, image=original_image_tk, anchor='nw')
     canvas.create_image(original.width + 10, 0, image=processed_image_tk, anchor='nw')
