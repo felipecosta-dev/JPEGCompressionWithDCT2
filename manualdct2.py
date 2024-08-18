@@ -10,6 +10,14 @@ class ManualDCT2:
         return [
             [math.cos(math.pi * k * (2 * i + 1) / (2 * N)) for k in range(N)] for i in range(N)
         ]
+    
+    def get_scaling_factor(self, k, n):
+        if k == 0:
+            scaling = math.sqrt(1 / (4 * n))
+        else:
+            scaling = math.sqrt(1 / (2 * n))
+    
+        return scaling
 
     def dct1d(self, a):
         n = len(a)
@@ -18,10 +26,8 @@ class ManualDCT2:
         for k in range(n):
             for i in range(n):
                 output[k] += a[i] * self.cos_table[i][k]
-            if k == 0:
-                output[k] *= math.sqrt(1 / n)
-            else:
-                output[k] *= math.sqrt(2 / n)
+            output[k] *= 2 * self.get_scaling_factor(k, n)
+
         return output
 
     def dct2(self, a):
