@@ -1,13 +1,12 @@
 import tkinter as tk
-from tkinter import filedialog, simpledialog
+from tkinter import filedialog, simpledialog, messagebox
 from tkinter import ttk
 from PIL import Image, ImageTk
-import cv2
+import os
+
 import numpy as np
-from manualdct2 import ManualDCT2
-from scipydct2 import SciPyDCT2
-from utils import apply_frequency_cutoff
-import os 
+
+from image_compressor import ImageCompressor
 
 images_save_dir = r'saved_images'
 
@@ -19,40 +18,20 @@ def choose_file():
         process_image(file_path, block_size, freq_cutoff)
 
 def process_image(file_path, F, d):
-    global compressed_image, compressed_image_filename, original_filename, original_directory, block_size, freq_cutoff
-    filename = os.path.basename(file_path)
-    original_filename = os.path.splitext(filename)[0]
-    original_directory = os.path.dirname(file_path)
-    block_size = F
-    freq_cutoff = d
-    compressed_image_filename = f"{original_filename}_f{block_size}_d{freq_cutoff}.jpg"
+    global compressor
+    compressor = ImageCompressor(file_path, F, d)
+    compressor.compress()
 
-    image = cv2.imread(file_path, cv2.IMREAD_GRAYSCALE)
-    height, width = image.shape
-    compressed_image = np.zeros_like(image)
+    display_images(file_path, compressor.compressed_image)
 
-    dct_engine = SciPyDCT2()
-
-    for i in range(0, height, F):
-        for j in range(0, width, F):
-            block = image[i:i+F, j:j+F]
-            if block.shape[0] == F and block.shape[1] == F:
-                dct_block = dct_engine.dct2(block)
-                dct_block = apply_frequency_cutoff(dct_block, d)
-                idct_block = dct_engine.idct2(dct_block)
-                compressed_image[i:i+F, j:j+F] = np.clip(idct_block, 0, 255)
-
-    display_images(image, compressed_image)
-
-    original_label_text.config(text=f"Immagine originale: {filename}")
-    processed_label_text.config(text=f"Immagine compressa (F={F}, d={d}): {compressed_image_filename}")
+    original_label_text.config(text=f"Immagine originale: {compressor.original_filename}")
+    processed_label_text.config(text=f"Immagine compressa (F={F}, d={d}): {compressor.compressed_image_filename}")
 
     original_label_text.grid()
     processed_label_text.grid()
     save_button.grid()
 
-
-def display_images(original, processed):
+def display_images(original_path, processed):
     canvas = tk.Canvas(frame, width=frame.winfo_screenwidth(), height=frame.winfo_screenheight())
     scroll_y = tk.Scrollbar(frame, orient="vertical", command=canvas.yview)
     scroll_x = tk.Scrollbar(frame, orient="horizontal", command=canvas.xview)
@@ -62,7 +41,7 @@ def display_images(original, processed):
     scroll_y.grid(row=2, column=2, sticky='ns')
     scroll_x.grid(row=3, column=0, columnspan=2, sticky='ew')
 
-    original = Image.fromarray(original)
+    original = Image.open(original_path)
     processed = Image.fromarray(processed.astype(np.uint8))
 
     max_width = (frame.winfo_screenwidth() // 2) - 20
@@ -83,13 +62,13 @@ def display_images(original, processed):
     canvas.processed_image_tk = processed_image_tk
 
 def save_compressed_image():
-    if compressed_image is not None:
+    global compressor
+    if compressor and compressor.compressed_image is not None:
         try:
-            save_path = os.path.join(images_save_dir, compressed_image_filename)
-            cv2.imwrite(save_path, compressed_image,  [int(cv2.IMWRITE_JPEG_QUALITY), 100])
-            tk.messagebox.showinfo("Salvataggio immagine", f"Immagine compressa salvata su {save_path}")
-        except:
-            tk.messagebox.showerror("Salvataggio immagine", f"Non è stato posibile salvare l'immagine su {save_path}")
+            save_path = compressor.save_compressed_image(images_save_dir)
+            messagebox.showinfo("Salvataggio immagine", f"Immagine compressa salvata su {save_path}")
+        except Exception as e:
+            messagebox.showerror("Salvataggio immagine", f"Non è stato posibile salvare l'immagine. Errore: {e}")
 
 root = tk.Tk()
 root.title("DCT Image Compression")
