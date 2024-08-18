@@ -10,6 +10,11 @@ def print_matrix(matrix, name):
         print(" ".join(f"{val:.2e}" for val in row))
     print()
 
+def print_vector(vector, name):
+    print(f"{name}:")
+    print(" ".join(f"{val:.2e}" for val in vector))
+    print()
+
 def main():
     test_block = np.array([
         [231, 32, 233, 161, 24, 71, 140, 245],
@@ -40,10 +45,9 @@ def main():
     manual_dct_1d_result = manual_dct.dct1d(first_row)
     scipy_dct_1d_result = scipy_dct.dct1d(first_row)
 
-    print("First Row Transformation:")
-    print("Original:", first_row)
-    print("Manual DCT1D:", manual_dct_1d_result)
-    print("SciPy DCT1D:", scipy_dct_1d_result)
+    print_vector(first_row, "Original")
+    print_vector(manual_dct_1d_result, "Manual DCT1D Result")
+    print_vector(scipy_dct_1d_result, "SciPy DCT1D Result")
 
 if __name__ == "__main__":
     main()
