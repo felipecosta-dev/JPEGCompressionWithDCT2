@@ -9,6 +9,8 @@ from scipydct2 import SciPyDCT2
 from utils import apply_frequency_cutoff
 import os 
 
+images_save_dir = r'saved_images'
+
 def choose_file():
     file_path = filedialog.askopenfilename(filetypes=[("BMP files", "*.bmp")])
     if file_path:
@@ -17,11 +19,13 @@ def choose_file():
         process_image(file_path, block_size, freq_cutoff)
 
 def process_image(file_path, F, d):
-    global compressed_image, original_filename, original_directory, block_size, freq_cutoff
-    original_filename = os.path.splitext(os.path.basename(file_path))[0]
+    global compressed_image, compressed_image_filename, original_filename, original_directory, block_size, freq_cutoff
+    filename = os.path.basename(file_path)
+    original_filename = os.path.splitext(filename)[0]
     original_directory = os.path.dirname(file_path)
     block_size = F
     freq_cutoff = d
+    compressed_image_filename = f"{original_filename}_f{block_size}_d{freq_cutoff}.bmp"
 
     image = cv2.imread(file_path, cv2.IMREAD_GRAYSCALE)
     height, width = image.shape
@@ -38,9 +42,17 @@ def process_image(file_path, F, d):
                 idct_block = dct_engine.idct2(dct_block)
                 compressed_image[i:i+F, j:j+F] = np.clip(idct_block, 0, 255)
 
-    display_images(image, compressed_image, F, d)
+    display_images(image, compressed_image)
 
-def display_images(original, processed, F, d):
+    original_label_text.config(text=f"Immagine originale: {filename}")
+    processed_label_text.config(text=f"Immagine compressa (F={F}, d={d}): {compressed_image_filename}")
+
+    original_label_text.grid()
+    processed_label_text.grid()
+    save_button.grid()
+
+
+def display_images(original, processed):
     canvas = tk.Canvas(frame, width=frame.winfo_screenwidth(), height=frame.winfo_screenheight())
     scroll_y = tk.Scrollbar(frame, orient="vertical", command=canvas.yview)
     scroll_x = tk.Scrollbar(frame, orient="horizontal", command=canvas.xview)
@@ -67,23 +79,17 @@ def display_images(original, processed, F, d):
     canvas.create_image(original.width + 10, 0, image=processed_image_tk, anchor='nw')
 
     canvas.config(scrollregion=canvas.bbox("all"))
-
-    original_label_text.config(text="Original Image")
-    processed_label_text.config(text=f"Compressed Image (F={F}, d={d})")
-
-    original_label_text.grid()
-    processed_label_text.grid()
-
-    save_button.grid()
-
     canvas.original_image_tk = original_image_tk
     canvas.processed_image_tk = processed_image_tk
 
 def save_compressed_image():
     if compressed_image is not None:
-        filename = f"{original_filename}_f{block_size}_d{freq_cutoff}.bmp"
-        cv2.imwrite(filename, compressed_image)
-        tk.messagebox.showinfo("Immagine salvata", f"Immagine compressa salvata come {filename}")
+        try:
+            save_path = os.path.join(images_save_dir, compressed_image_filename)
+            cv2.imwrite(save_path, compressed_image)
+            tk.messagebox.showinfo("Salvataggio immagine", f"Immagine compressa salvata su {save_path}")
+        except:
+            tk.messagebox.showerror("Salvataggio immagine", f"Non è stato posibile salvare l'immagine su {save_path}")
 
 root = tk.Tk()
 root.title("DCT Image Compression")
@@ -103,12 +109,6 @@ original_label_text = ttk.Label(frame, text="", anchor="center")
 original_label_text.grid(row=1, column=0, pady=5)
 original_label_text.grid_remove() 
 
-original_label = ttk.Label(frame)
-original_label.grid(row=2, column=0, padx=10, pady=10)
-
 processed_label_text = ttk.Label(frame, text="", anchor="center")
 processed_label_text.grid(row=1, column=1, pady=5)
 processed_label_text.grid_remove()  
-
-processed_label = ttk.Label(frame)
-processed_label.grid(row=2, column=1, padx=10, pady=10)
