@@ -25,7 +25,7 @@ def process_image(file_path, F, d):
     original_directory = os.path.dirname(file_path)
     block_size = F
     freq_cutoff = d
-    compressed_image_filename = f"{original_filename}_f{block_size}_d{freq_cutoff}.bmp"
+    compressed_image_filename = f"{original_filename}_f{block_size}_d{freq_cutoff}.jpg"
 
     image = cv2.imread(file_path, cv2.IMREAD_GRAYSCALE)
     height, width = image.shape
@@ -86,7 +86,7 @@ def save_compressed_image():
     if compressed_image is not None:
         try:
             save_path = os.path.join(images_save_dir, compressed_image_filename)
-            cv2.imwrite(save_path, compressed_image)
+            cv2.imwrite(save_path, compressed_image,  [int(cv2.IMWRITE_JPEG_QUALITY), 100])
             tk.messagebox.showinfo("Salvataggio immagine", f"Immagine compressa salvata su {save_path}")
         except:
             tk.messagebox.showerror("Salvataggio immagine", f"Non è stato posibile salvare l'immagine su {save_path}")
