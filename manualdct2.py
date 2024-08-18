@@ -5,7 +5,6 @@ class ManualDCT2:
     def __init__(self, N):
         self.N = N
         self.cos_table = self.generate_cos_table(N)
-        self.root2_inv = 1 / math.sqrt(2)
 
     def generate_cos_table(self, N):
         return [
