@@ -3,6 +3,7 @@ from tkinter import filedialog, simpledialog, messagebox
 from tkinter import ttk
 from PIL import Image, ImageTk
 import os
+import time 
 
 import numpy as np
 
@@ -20,7 +21,13 @@ def choose_file():
 def process_image(file_path, F, d):
     global compressor
     compressor = ImageCompressor(file_path, F, d)
+
+    start_time = time.perf_counter()
     compressor.compress()
+    end_time = time.perf_counter()
+
+    compression_time = end_time - start_time
+    print(f"Compression time: {compression_time:.10f}")
 
     display_images(file_path, compressor.compressed_image)
 
